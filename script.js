@@ -1,39 +1,44 @@
 function parseCsv(results) {
-  let tallyCounts = {};
+  let counts = {};
 
   for (let i = 0; i < results.data.length; i++) {
     let row = results.data[i];
     let sku = row["Lineitem sku"];
     let quantity = parseInt(row["Lineitem quantity"]);
 
-    if (tallyCounts.hasOwnProperty(sku)) {
-      tallyCounts[sku] += quantity;
+    if (counts.hasOwnProperty(sku)) {
+      counts[sku] += quantity;
     } else {
-      tallyCounts[sku] = quantity;
+      counts[sku] = quantity;
     }
   }
 
-  let tableHtml = `
-        <table border="1">
-            <tr>
-                <th>SKU</th>
-                <th>Tally Count</th>
-            </tr>
-        `;
+  const insertRow = (a, b, body) => {
+    let newRow = body.insertRow();
+    let cellA = newRow.insertCell();
+    let cellB = newRow.insertCell();
 
-  for (let sku in tallyCounts) {
-    tableHtml += `
-                <tr>
-                    <td>${sku}</td>
-                    <td>${tallyCounts[sku]}</td>
-                </tr>
-            `;
-  }
+    cellA.textContent = a;
+    cellB.textContent = b;
+  };
 
-  tableHtml += `</table>`;
+  // All - Group by SKU
+  let allBody = document.getElementById("allBody");
+  Object.keys(counts).forEach((sku) => insertRow(sku, counts[sku], allBody));
 
-  let output = document.getElementById("output");
-  output.innerHTML = tableHtml;
+  // Only Bites
+  let bitesBody = document.getElementById("bitesBody");
+  Object.keys(counts)
+    .filter((sku) => sku.includes("Bites"))
+    .forEach((sku) => insertRow(sku, counts[sku], bitesBody));
+
+  // Only Special
+  let specialBody = document.getElementById("specialBody");
+  const specialRegex = /(Broth|Jerky|SMELT|Duck Neck|Special)/i;
+  Object.keys(counts)
+    .filter((sku) => specialRegex.test(sku))
+    .forEach((sku) => insertRow(sku, counts[sku], specialBody));
+
 }
 
 document
@@ -42,7 +47,7 @@ document
     let file = event.target.files[0];
     let reader = new FileReader();
 
-    reader.onload = function (progressEvent) {
+    reader.onload = function (e) {
       let csvContent = this.result;
 
       Papa.parse(csvContent, {

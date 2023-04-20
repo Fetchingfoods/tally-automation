@@ -1,17 +1,51 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Tally count</title>
-</head>
-<body>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
     <h1>Tally count</h1>
-    <input type="file" id="inputfile" accept=".csv">
-    
-    <pre id="output"></pre>
+    <input type="file" id="inputfile" accept=".csv" />
+    <br>
+    <br>
 
+    <small>filter: sku contains Bites</small>
+    <table id="bitesTable" border="1">
+      <thead>
+        <tr>
+          <th>Bites</th>
+          <th>Count</th>
+        </tr>
+      </thead>
+      <tbody id="bitesBody"></tbody>
+    </table>
+    
+    <small>filter: sku contains Broth|Jerky|SMELT|Duck Neck|Special</small>
+    <table id="specialTable" border="1">
+      <thead>
+        <tr>
+          <th>Special</th>
+          <th>Count</th>
+        </tr>
+      </thead>
+      <tbody id="specialBody"></tbody>
+    </table>
+
+    <h3>No filter SKU</h3>
+    <table border="1">
+      <thead>
+        <tr>
+          <th>SKU</th>
+          <th>Count</th>
+        </tr>
+      </thead>
+      <tbody id="allBody"></tbody>
+    </table>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
     <script src="script.js"></script>
-</body>
+  </body>
 </html>
