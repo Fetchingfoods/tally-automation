@@ -7,6 +7,11 @@ function insertRow(a, b, body) {
   cellB.textContent = b;
 }
 
+function clearTable(bodyId) {
+  const body = document.getElementById(bodyId);
+  body.innerHTML = "";
+}
+
 function parseCSV(rows) {
   let counts = {};
 
@@ -114,6 +119,9 @@ function generateJustCat(skus, counts) {
 
 function init(csvContent) {
   const counts = parseCSV(csvContent.data);
+  clearTable("justCatBody");
+  clearTable("bitesBody");
+  clearTable("specialBody");
   generateReport(counts);
 }
 
