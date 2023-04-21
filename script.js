@@ -1,8 +1,16 @@
-function parseCsv(results) {
+function insertRow(a, b, body) {
+  let newRow = body.insertRow();
+  let cellA = newRow.insertCell();
+  let cellB = newRow.insertCell();
+
+  cellA.textContent = a;
+  cellB.textContent = b;
+}
+
+function parseCSV(rows) {
   let counts = {};
 
-  for (let i = 0; i < results.data.length; i++) {
-    let row = results.data[i];
+  for (let row of rows) {
     let sku = row["Lineitem sku"];
     let quantity = parseInt(row["Lineitem quantity"]);
 
@@ -12,49 +20,49 @@ function parseCsv(results) {
       counts[sku] = quantity;
     }
   }
-
-  const insertRow = (a, b, body) => {
-    let newRow = body.insertRow();
-    let cellA = newRow.insertCell();
-    let cellB = newRow.insertCell();
-
-    cellA.textContent = a;
-    cellB.textContent = b;
-  };
-
-  // All - Group by SKU
-  let allBody = document.getElementById("allBody");
-  Object.keys(counts).forEach((sku) => insertRow(sku, counts[sku], allBody));
-
-  // Only Bites
-  let bitesBody = document.getElementById("bitesBody");
-  Object.keys(counts)
-    .filter((sku) => sku.includes("Bites"))
-    .forEach((sku) => insertRow(sku, counts[sku], bitesBody));
-
-  // Only Special
-  let specialBody = document.getElementById("specialBody");
-  const specialRegex = /(Broth|Jerky|SMELT|Duck Neck|Special)/i;
-  Object.keys(counts)
-    .filter((sku) => specialRegex.test(sku))
-    .forEach((sku) => insertRow(sku, counts[sku], specialBody));
-
+  return counts;
 }
 
-document
-  .getElementById("inputfile")
-  .addEventListener("change", function (event) {
-    let file = event.target.files[0];
-    let reader = new FileReader();
+function generateReport(counts) {
+  const skus = Object.keys(counts);
+  const get = (id) => document.getElementById(id);
 
-    reader.onload = function (e) {
-      let csvContent = this.result;
+  // All - Group by SKU
+  skus.forEach((sku) => insertRow(sku, counts[sku], get("allBody")));
 
-      Papa.parse(csvContent, {
-        header: true,
-        complete: parseCsv,
-      });
-    };
+  // Only Bites
+  skus
+    .filter((sku) => sku.includes("Bites"))
+    .forEach((sku) => insertRow(sku, counts[sku], get("bitesBody")));
 
-    reader.readAsText(file);
-  });
+  // Only Special
+  const specialRegex = /(Broth|Jerky|SMELT|Duck Neck|Special)/i;
+  skus
+    .filter((sku) => specialRegex.test(sku))
+    .forEach((sku) => insertRow(sku, counts[sku], get("specialBody")));
+
+  // Just Cat
+  skus
+    .filter((sku) => sku.startsWith("JC "))
+    .forEach((sku) => insertRow(sku, counts[sku], get("justCatBody")));
+}
+
+function init(csvContent) {
+  const counts = parseCSV(csvContent.data);
+  generateReport(counts);
+}
+
+function readFile(event) {
+  let reader = new FileReader();
+
+  reader.onload = function () {
+    Papa.parse(this.result, {
+      header: true,
+      complete: init,
+    });
+  };
+
+  reader.readAsText(event.target.files[0]);
+}
+
+document.getElementById("inputfile").addEventListener("change", readFile);
