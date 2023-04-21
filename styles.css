@@ -37,6 +37,10 @@ th {
   background-color: #f27100;
 }
 
+#justCatTable th {
+  background-color: #bdc0bf;
+}
+
 .align-right {
   text-align: right;
 }
