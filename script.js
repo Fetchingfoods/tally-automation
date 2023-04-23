@@ -28,7 +28,7 @@ function parseCSV(rows) {
   return counts;
 }
 
-function generateReport(counts) {
+function generateReports(counts) {
   const skus = Object.keys(counts);
   const get = (id) => document.getElementById(id);
 
@@ -58,6 +58,7 @@ function generateReport(counts) {
 
   generateJustCat(skus, counts);
 }
+
 function generateJustCat(skus, counts) {
   const variants = [
     "Sampler Pack Raw",
@@ -132,7 +133,7 @@ function init(csvContent) {
   clearTable("justCatBody");
   clearTable("bitesBody");
   clearTable("specialBody");
-  generateReport(counts);
+  generateReports(counts);
 }
 
 function readFile(event) {
