@@ -46,6 +46,16 @@ function generateReport(counts) {
     .filter((sku) => specialRegex.test(sku))
     .forEach((sku) => insertRow(sku, counts[sku], get("specialBody")));
 
+  // Exceptions SKUs
+  skus
+    .filter(
+      (sku) =>
+        !sku.includes("Bites") &&
+        !specialRegex.test(sku) &&
+        !sku.startsWith("JC ")
+    )
+    .forEach((sku) => insertRow(sku, counts[sku], get("exceptionsBody")));
+
   generateJustCat(skus, counts);
 }
 function generateJustCat(skus, counts) {

@@ -1,6 +1,6 @@
-column1,column
-123;4343
-123;4343
-foo;4343
-123;4343
-asdfoo bar;4343
+Lineitem quantity,Lineitem sku
+1,Broth Veal
+3,Broth Veal
+4,JC Lamb 24oz
+6,Broth Veal
+2,JC Venison 16oz
