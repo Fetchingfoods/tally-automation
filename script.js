@@ -1,10 +1,10 @@
-function insertRow(a, b, body) {
-  let newRow = body.insertRow();
-  let cellA = newRow.insertCell();
-  let cellB = newRow.insertCell();
+function insertRow(cells, bodyId) {
+  let newRow = document.getElementById(bodyId).insertRow();
 
-  cellA.textContent = a;
-  cellB.textContent = b;
+  for (let i = 0; i < cells.length; i++) {
+    let newCell = newRow.insertCell();
+    newCell.textContent = cells[i];
+  }
 }
 
 function clearTable(bodyId) {
@@ -12,64 +12,152 @@ function clearTable(bodyId) {
   body.innerHTML = "";
 }
 
-function parseCSV(rows) {
-  let counts = {};
+function parseCSV(data) {
+  const packs = data.reduce((acc, item) => {
+    const name = item["Lineitem name"];
+    const sku = item["Lineitem sku"];
+    const quantity = item["Lineitem quantity"];
+    const status = item["Lineitem fulfillment status"];
 
-  for (let row of rows) {
-    let sku = row["Lineitem sku"];
-    let quantity = parseInt(row["Lineitem quantity"]);
+    if (!sku || status === "fulfilled") return acc;
 
-    if (counts.hasOwnProperty(sku)) {
-      counts[sku] += quantity;
+    const typeRegex = /(Just Cat|Only Dog|PREMIUM Cat|Bites|Special)/;
+    // Review this list or make a parameter
+    const proteinRegex =
+      /(Chicken|Boneless Rabbit|Rabbit w\/bone|Rabbit|Buffalo|Wild Boar|Duck w\/bone|Kangaroo|Lamb|Pork|Turkey|Venison|Guinea Hen|Partridge|Pheasant|Quail|Beef|Ostrich)/;
+    const weightRegex = /(-?\d+\.?\d*)\s*(?:oz|lb)/;
+
+    const typeMatch = name.match(typeRegex);
+    const proteinMatch = name.match(proteinRegex);
+    const weightMatch = name.match(weightRegex);
+    const isSamplerPack = name.match(/Sampler Pack/);
+
+    if (isSamplerPack) {
+      // SAMPLER PACK
     } else {
-      counts[sku] = quantity;
+      const type = typeMatch ? typeMatch[0] : "";
+      const weight = weightMatch ? weightMatch[0] : "";
+      const protein = proteinMatch ? proteinMatch[0] : "";
+      const isCooked = name.includes("Cooked");
+      const existingItemSku = acc.findIndex((i) => i.sku === sku);
+
+      if (existingItemSku >= 0) {
+        acc[existingItemSku].count += parseInt(quantity);
+      } else {
+        acc.push({
+          type,
+          protein,
+          weight,
+          isCooked,
+          count: parseInt(quantity),
+          name,
+          sku,
+        });
+      }
     }
-  }
-  return counts;
+    return acc;
+  }, []);
+
+  return packs;
 }
 
-function generateReports(counts) {
-  const skus = Object.keys(counts);
-  const get = (id) => document.getElementById(id);
+function generateReports(packs) {
+  packs.sort((a, b) => a.type.localeCompare(b.type));
 
-  // All - Group by SKU
-  skus.forEach((sku) => insertRow(sku, counts[sku], get("allBody")));
+  generateJustCat(packs);
 
   // Only Bites
-  skus
-    .filter((sku) => sku.includes("Bites"))
-    .forEach((sku) => insertRow(sku, counts[sku], get("bitesBody")));
+  packs
+    .filter((p) => p.type === "Bites")
+    .forEach((p) => insertRow([p.sku, p.count], "bitesBody"));
 
   // Only Special
-  const specialRegex = /(Broth|Jerky|SMELT|Duck Neck|Special)/i;
-  skus
-    .filter((sku) => specialRegex.test(sku))
-    .forEach((sku) => insertRow(sku, counts[sku], get("specialBody")));
+  packs
+    .filter((p) => p.type === "Special")
+    .forEach((p) => insertRow([p.name, p.count], "specialBody"));
 
-  // Exceptions SKUs
-  skus
-    .filter(
-      (sku) =>
-        !sku.includes("Bites") &&
-        !specialRegex.test(sku) &&
-        !sku.startsWith("JC ")
+  // Packs
+  packs.forEach((p) =>
+    insertRow(
+      [
+        p.type,
+        p.protein,
+        p.weight,
+        p.isCooked ? "Cooked" : "Raw",
+        p.sku,
+        p.name,
+        p.count,
+      ],
+      "packsBody"
     )
-    .forEach((sku) => insertRow(sku, counts[sku], get("exceptionsBody")));
+  );
 
-  generateJustCat(skus, counts);
+  // Exceptions
+  packs
+    .filter((pack) => !pack.type)
+    .forEach((pack) => insertRow([pack.name, pack.count], "exceptionsBody"));
+
+  // All
+  packs.forEach((pack) => insertRow([pack.sku, pack.count], "allBody"));
+
+  generateAllByWeight(packs);
 }
 
-function generateJustCat(skus, counts) {
+function generateAllByWeight(packs) {
+  const weights = Array.from(new Set(packs.map((pack) => pack.weight))).sort(
+    (a, b) => parseInt(a) - parseInt(b)
+  );
+
+  const types = Array.from(new Set(packs.map((pack) => pack.type)));
+
+  const proteins = Array.from(
+    new Set(packs.map((pack) => pack.protein))
+  ).sort();
+
+  // Generate header row for the table
+  const headerRow = ["Type", "Protein"].concat(weights);
+  insertRow(headerRow, "allByWeightBody");
+
+  types.forEach((type) => {
+    proteins.forEach((protein) => {
+      const row = [type, protein];
+      let anyWeight = false;
+
+      weights.forEach((weight) => {
+        const pack = packs.find(
+          (pack) =>
+            pack.weight === weight &&
+            pack.type === type &&
+            pack.protein === protein
+        );
+
+        if (pack) {
+          anyWeight = true;
+          row.push(pack.count);
+        } else {
+          row.push("");
+        }
+      });
+
+      if (anyWeight) {
+        insertRow(row, "allByWeightBody");
+      }
+    });
+  });
+}
+
+function generateJustCat(packs) {
+  const justCatPacks = packs.filter((p) => p.type === "Just Cat");
   const variants = [
-    "Sampler Pack Raw",
-    "Sampler Pack Cooked",
-    "16oz Cooked",
-    "16oz",
-    "24oz",
-    "32oz",
+    // "Sampler Pack Raw",
+    // "Sampler Pack Cooked",
+    { weight: "16oz", isCooked: false },
+    { weight: "16oz", isCooked: true },
+    { weight: "24oz", isCooked: false },
+    { weight: "32oz", isCooked: false },
   ];
 
-  const sortOrder = [
+  const proteins = [
     "Chicken",
     "Turkey",
     "Venison",
@@ -80,60 +168,28 @@ function generateJustCat(skus, counts) {
     "Duck w/bone",
     "Boneless Rabbit",
   ];
+  proteins.forEach((protein) => {
+    const row = [protein, "", ""];
+    variants.forEach((variant) => {
+      const pack = justCatPacks.find(
+        (pack) =>
+          pack.weight === variant.weight &&
+          pack.isCooked === variant.isCooked &&
+          protein === pack.protein
+      );
 
-  let justCatData = {};
-
-  skus
-    .filter((sku) => sku.startsWith("JC "))
-    .forEach((sku) => {
-      let product = sku.slice(3); // Remove "JC " prefix
-      let variant = "";
-
-      // Find and replace variant from the product string
-      const foundVariant = variants.some((v) => {
-        if (product.includes(v)) {
-          variant = v;
-          product = product.replace(v, "").trim();
-
-          // If the variant is "16oz" and the product string contains "raw"
-          if (variant === "16oz" && product.includes("raw")) {
-            product = product.replace("raw", "").trim();
-          }
-
-          return true;
-        }
-      });
-      if (!foundVariant) {
-        console.warn("Variant not found in sku: ", sku);
-      }
-
-      if (!justCatData[product]) {
-        justCatData[product] = {};
-      }
-      justCatData[product][variant] = counts[sku];
+      row.push(pack ? pack.count : "");
     });
-
-  sortOrder.forEach((product) => {
-    if (!justCatData[product]) return;
-
-    const rowData = [product].concat(
-      variants.map((variant) => justCatData[product][variant] || "")
-    );
-
-    let newRow = document.getElementById("justCatBody").insertRow();
-    rowData.forEach((data, index) => {
-      let cell = newRow.insertCell(index);
-      cell.textContent = data;
-    });
+    insertRow(row, "justCatBody");
   });
 }
 
 function init(csvContent) {
-  const counts = parseCSV(csvContent.data);
+  const packs = parseCSV(csvContent.data);
   clearTable("justCatBody");
   clearTable("bitesBody");
   clearTable("specialBody");
-  generateReports(counts);
+  generateReports(packs);
 }
 
 function readFile(event) {
