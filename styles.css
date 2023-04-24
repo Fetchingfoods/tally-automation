@@ -41,6 +41,18 @@ th {
   background-color: #bdc0bf;
 }
 
+#onlyDogTable th {
+  background-color: #ff94ca;
+}
+
+#premiumCatTable th {
+  background-color: #ff968c;
+}
+
+h3 {
+  margin-bottom: 2px;
+}
+
 .align-right {
   text-align: right;
 }

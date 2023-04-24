@@ -14,25 +14,60 @@
     <br />
     <input type="file" id="inputfile" accept=".csv" />
     <br />
+    <ul>
+      <li>The following columns are being used: Lineitem name, Lineitem sku, Lineitem quantity, Lineitem fulfillment status</li>
+      <li>The lines are being filtered by status = pending and sku not null</li>
+    </ul>
     <br />
 
-    <small>filter: starts with "JC "</small>
+    <h3>Just Cat</h3>
+    <small>filter: contains "Just Cat"</small>
     <table id="justCatTable" border="1">
       <thead>
         <tr>
           <th>JUST CAT</th>
-          <th>Sampler Pack Raw</th>
-          <th>Sampler Pack Cooked</th>
+          <th>SP Raw</th>
+          <th>SP Cooked</th>
           <th>16oz</th>
           <th>16oz Cooked</th>
           <th>24oz</th>
           <th>32oz</th>
         </tr>
       </thead>
-      <tbody id="justCatBody"></tbody>
+      <tbody class="table-body" id="justCatBody"></tbody>
     </table>
 
-    <small>filter: include Bites</small>
+    <h3>Only Dog</h3>
+    <small>filter: contains "Only Dog"</small>
+    <table id="onlyDogTable" border="1">
+      <thead>
+        <tr>
+          <th>ONLY DOG</th>
+          <th>SP Raw</th>
+          <th>SP Cooked</th>
+          <th>16oz</th>
+          <th>16oz Cooked</th>
+          <th>24oz</th>
+          <th>32oz</th>
+        </tr>
+      </thead>
+      <tbody class="table-body" id="onlyDogBody"></tbody>
+    </table>
+
+    <h3>PREMIUM Cat</h3>
+    <small>filter: contains "PREMIUM Cat"</small>
+    <table id="premiumCatTable" border="1">
+      <thead>
+        <tr>
+          <th>Sku</th>
+          <th>Count</th>
+        </tr>
+      </thead>
+      <tbody class="table-body" id="premiumCatBody"></tbody>
+    </table>
+
+    <h3>Bites</h3>
+    <small>filter: contains "Bites"</small>
     <table id="bitesTable" border="1">
       <thead>
         <tr>
@@ -40,29 +75,23 @@
           <th>Count</th>
         </tr>
       </thead>
-      <tbody id="bitesBody"></tbody>
+      <tbody class="table-body" id="bitesBody"></tbody>
     </table>
 
-    <small>filter: include Special</small>
-    <table id="specialTable" border="1">
+    <h3>Exceptions SKUs</h3>
+    <small>filter: not contain Just Cat|Only Dog|PREMIUM Cat|Bites</small>
+    <table border="1">
       <thead>
         <tr>
-          <th>Special</th>
+          <th>SKU</th>
           <th>Count</th>
         </tr>
       </thead>
-      <tbody id="specialBody"></tbody>
+      <tbody class="table-body" id="exceptionsBody"></tbody>
     </table>
 
-    <h3>All by weight</h3>
-    <small>no filter</small>
-    <table border="1">
-  
-      <tbody id="allByWeightBody"></tbody>
-    </table>
-
-    <h3>Packs</h3>
-    <small>no filter</small>
+    <h3>Products</h3>
+    <small>Data generated from SKU and name</small>
     <table border="1">
       <thead>
         <tr>
@@ -71,23 +100,17 @@
           <th>Weight</th>
           <th>Is Cooked</th>
           <th>SKU</th>
-          <th>Name</th>
+          <!-- <th>Name</th> -->
           <th>Count</th>
         </tr>
       </thead>
-      <tbody id="packsBody"></tbody>
+      <tbody class="table-body" id="packsBody"></tbody>
     </table>
 
-    <h3>Exceptions SKUs</h3>
-    <small>filter: excludes JC, Bites, Special</small>
+    <h3>Product x weight</h3>
+    <small>This is a dynamic table generated from the products - is an experiment and is still in development</small>
     <table border="1">
-      <thead>
-        <tr>
-          <th>SKU</th>
-          <th>Count</th>
-        </tr>
-      </thead>
-      <tbody id="exceptionsBody"></tbody>
+      <tbody class="table-body" id="allByWeightBody"></tbody>
     </table>
 
     <h3>All SKUs</h3>
@@ -99,7 +122,7 @@
           <th>Count</th>
         </tr>
       </thead>
-      <tbody id="allBody"></tbody>
+      <tbody class="table-body" id="allBody"></tbody>
     </table>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
