@@ -8,20 +8,33 @@
   </head>
   <body>
     <h1>Tally products</h1>
-    <label>
-      Select CSV File
-    </label>
+    <label> Select CSV File </label>
     <br />
     <input type="file" id="inputfile" accept=".csv" />
     <br />
     <ul>
-      <li>The following columns are being used: Lineitem name, Lineitem sku, Lineitem quantity, Lineitem fulfillment status</li>
-      <li>The lines are being filtered by status = pending and sku not null</li>
+      <li>
+        The following columns are being used:
+        <ul>
+          <li><pre>Lineitem name</pre></li>
+          <li><pre>Lineitem sku</pre></li>
+          <li><pre>Lineitem quantity</pre></li>
+          <li><pre>Lineitem fulfillment status</pre></li>
+          <li><pre>Lineitem requires shipping</pre></li>
+        </ul>
+      </li>
+      <li>
+        The lines are being filtered by:
+        <ul>
+          <li><pre>fulfillment status = pending</pre></li>
+          <li><pre>requires shipping = true</pre></li>
+        </ul>
+      </li>
     </ul>
     <br />
 
     <h3>Just Cat</h3>
-    <small>filter: contains "Just Cat"</small>
+    <small>filter: sku starts with "JC"</small>
     <table id="justCatTable" border="1">
       <thead>
         <tr>
@@ -36,9 +49,10 @@
       </thead>
       <tbody class="table-body" id="justCatBody"></tbody>
     </table>
+    <pre id="justCatWarning"></pre>
 
     <h3>Only Dog</h3>
-    <small>filter: contains "Only Dog"</small>
+    <small>filter: sku starts with "OD"</small>
     <table id="onlyDogTable" border="1">
       <thead>
         <tr>
@@ -53,13 +67,14 @@
       </thead>
       <tbody class="table-body" id="onlyDogBody"></tbody>
     </table>
+    <pre id="onlyDogWarning"></pre>
 
     <h3>PREMIUM Cat</h3>
-    <small>filter: contains "PREMIUM Cat"</small>
+    <small>filter: sku starts with "PC"</small>
     <table id="premiumCatTable" border="1">
       <thead>
         <tr>
-          <th>Sku</th>
+          <th>SKU</th>
           <th>Count</th>
         </tr>
       </thead>
@@ -67,11 +82,11 @@
     </table>
 
     <h3>Bites</h3>
-    <small>filter: contains "Bites"</small>
+    <small>filter: sku starts with "Bites"</small>
     <table id="bitesTable" border="1">
       <thead>
         <tr>
-          <th>Bites</th>
+          <th>SKU</th>
           <th>Count</th>
         </tr>
       </thead>
@@ -79,38 +94,16 @@
     </table>
 
     <h3>Exceptions SKUs</h3>
-    <small>filter: not contain Just Cat|Only Dog|PREMIUM Cat|Bites</small>
+    <small>filter: sku is not null and does not start with JC|OD|PC|Bites</small>
     <table border="1">
       <thead>
         <tr>
           <th>SKU</th>
+          <th>Name</th>
           <th>Count</th>
         </tr>
       </thead>
       <tbody class="table-body" id="exceptionsBody"></tbody>
-    </table>
-
-    <h3>Products</h3>
-    <small>Data generated from SKU and name</small>
-    <table border="1">
-      <thead>
-        <tr>
-          <th>Type</th>
-          <th>Protein</th>
-          <th>Weight</th>
-          <th>Is Cooked</th>
-          <th>SKU</th>
-          <!-- <th>Name</th> -->
-          <th>Count</th>
-        </tr>
-      </thead>
-      <tbody class="table-body" id="packsBody"></tbody>
-    </table>
-
-    <h3>Product x weight</h3>
-    <small>This is a dynamic table generated from the products - is an experiment and is still in development</small>
-    <table border="1">
-      <tbody class="table-body" id="allByWeightBody"></tbody>
     </table>
 
     <h3>All SKUs</h3>
@@ -123,6 +116,23 @@
         </tr>
       </thead>
       <tbody class="table-body" id="allBody"></tbody>
+    </table>
+
+    <h3>Product-variants</h3>
+    <small>Data parsed from SKU</small>
+    <table border="1">
+      <thead>
+        <tr>
+          <th>SKU</th>
+          <th>Type</th>
+          <th>Protein</th>
+          <th>Weight</th>
+          <th>Is Cooked</th>
+          <!-- <th>Name</th> -->
+          <th>Count</th>
+        </tr>
+      </thead>
+      <tbody class="table-body" id="productVariantsBody"></tbody>
     </table>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>

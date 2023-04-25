@@ -7,7 +7,7 @@ body {
 
 table {
   border-collapse: collapse;
-  margin-bottom: 30px;
+  margin-bottom: 4px;
   font-family: monospace;
 }
 
@@ -59,4 +59,12 @@ h3 {
 
 small {
   color: #777;
+}
+
+pre {
+  margin: 0;
+}
+
+ul {
+  margin-bottom: 8px;
 }
