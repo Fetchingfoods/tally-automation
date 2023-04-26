@@ -30,14 +30,14 @@ function parseCSV(data) {
     const typeRegex = /^(JC|OD|PC|Bites)/;
     const proteinRegex =
       /(Chicken|Boneless Rabbit|Rabbit w\/bone|Boneless Rabbit|Rabbit|Buffalo|Wild Boar|Duck w\/bone|Duck|Kangaroo|Lamb|Pork|Turkey|Venison Salmon|Venison|Guinea Hen|Partridge|Pheasant|Quail|Beef|Ostrich|Rex and Rosie|Kanagroo)/i;
-    const weightRegex = /(-?\d+\.?\d*)\s*(?:oz|lb)/;
+    const sizeRegex = /(-?\d+\.?\d*)\s*(?:oz|lb)/;
 
     const typeMatch = sku.match(typeRegex);
     const proteinMatch = sku.match(proteinRegex);
-    const weightMatch = name.match(weightRegex);
+    const sizeMatch = name.match(sizeRegex);
 
     const type = typeMatch ? typeMatch[0] : "";
-    const weight = weightMatch ? weightMatch[0] : "";
+    const size = sizeMatch ? sizeMatch[0] : "";
     const protein = proteinMatch ? proteinMatch[0] : "";
     const isCooked = name.includes("Cooked");
     const existingItemIndex = acc.findIndex(
@@ -50,7 +50,7 @@ function parseCSV(data) {
       acc.push({
         type,
         protein,
-        weight,
+        size,
         isCooked,
         count: parseInt(quantity),
         name,
@@ -86,7 +86,7 @@ function generateReports(rows) {
         r.sku,
         r.type,
         r.protein,
-        r.weight,
+        r.size,
         r.isCooked ? "Cooked" : "Raw",
         // r.name,
         r.count,
@@ -112,7 +112,7 @@ function generateCustomTable(rows, variants, proteins, bodyId, warningId) {
       const index = rows.findIndex(
         (item) =>
           ((variant.sku && item.sku.includes(variant.sku)) ||
-            item.weight === variant?.weight) &&
+            item.size === variant?.size) &&
           item.isCooked === variant.isCooked &&
           item.protein === protein
       );
@@ -137,10 +137,10 @@ function generateJustCat(rows) {
   const variants = [
     { sku: "Sampler Pack", isCooked: false },
     { sku: "Sampler Pack", isCooked: true },
-    { weight: "16oz", isCooked: false },
-    { weight: "16oz", isCooked: true },
-    { weight: "24oz", isCooked: false },
-    { weight: "32oz", isCooked: false },
+    { size: "16oz", isCooked: false },
+    { size: "16oz", isCooked: true },
+    { size: "24oz", isCooked: false },
+    { size: "32oz", isCooked: false },
   ];
 
   const proteins = [
@@ -169,10 +169,10 @@ function generateOnlyDog(rows) {
   const variants = [
     { sku: "Sampler Pack", isCooked: false },
     { sku: "Sampler Pack", isCooked: true },
-    { weight: "16oz", isCooked: false },
-    { weight: "16oz", isCooked: true },
-    { weight: "24oz", isCooked: false },
-    { weight: "32oz", isCooked: false },
+    { size: "16oz", isCooked: false },
+    { size: "16oz", isCooked: true },
+    { size: "24oz", isCooked: false },
+    { size: "32oz", isCooked: false },
   ];
 
   const proteins = [
