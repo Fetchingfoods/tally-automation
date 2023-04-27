@@ -80,7 +80,7 @@ function parseCSV(data, filters) {
   };
 }
 
-function generateReports({rows, summary}) {
+function generateReports({ rows, summary }) {
   rows.sort((a, b) => a.sku?.localeCompare(b.sku));
 
   generateJustCat(rows);
@@ -132,16 +132,18 @@ function generateSummary(summary) {
 
 function generateCustomTable(rows, variants, proteins, tableId, warningId) {
   const tableData = [];
+  const itemMatches = (item, variant, protein) =>
+    ((variant.sku && item.sku.includes(variant.sku)) ||
+      item.size === variant?.size) &&
+    item.isCooked === variant.isCooked &&
+    item.protein === protein;
+
   proteins.forEach((protein) => {
     const tableRow = [];
     variants.forEach((variant) => {
       let product;
-      const index = rows.findIndex(
-        (item) =>
-          ((variant.sku && item.sku.includes(variant.sku)) ||
-            item.size === variant?.size) &&
-          item.isCooked === variant.isCooked &&
-          item.protein === protein
+      const index = rows.findIndex((item) =>
+        itemMatches(item, variant, protein)
       );
       if (index !== -1) {
         product = rows.splice(index, 1)[0];
@@ -152,14 +154,28 @@ function generateCustomTable(rows, variants, proteins, tableId, warningId) {
     insertRow([protein, ...tableRow], tableId);
   });
 
-  let warning = "";
-  if (rows.length) {
-    console.warn("Not included in " + tableId + ":", rows);
-    warning =
+  // Try to add remaining items that didn't match the protein rows
+  const notIncludedItems = rows.filter((item) => {
+    const tableRow = [];
+    let foundVariant = false;
+    variants.forEach((variant) => {
+      if (itemMatches(item, variant, item.protein)) {
+        foundVariant = true;
+        tableRow.push(item.count);
+      } else {
+        tableRow.push("");
+      }
+    });
+    insertRow([item.sku, ...tableRow], tableId);
+    return !foundVariant;
+  });
+
+  // Show items that didn't match the variant columns
+  if (notIncludedItems.length) {
+    getById(warningId).innerHTML =
       "Not included in the table above:" +
-      rows.map((r) => "<br>" + r.sku + " - " + r.count);
+      notIncludedItems.map((r) => "<br>" + r.sku + " - " + r.count);
   }
-  getById(warningId).innerHTML = warning;
 }
 
 function generateJustCat(rows) {
