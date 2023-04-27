@@ -212,24 +212,20 @@ function generateOnlyDog(rows) {
   );
 }
 
-function init(csvContent) {
-  const load = () => {
+let latestCsvContent = null;
+
+function load() {
+  if (latestCsvContent) {
     const filters = {
       requiresShipping: document.getElementById("requiresShipping").checked,
       fulfillmentStatusPending: document.getElementById(
         "fulfillmentStatusPending"
       ).checked,
     };
-    const rows = parseCSV(csvContent.data, filters);
+    const rows = parseCSV(latestCsvContent.data, filters);
     clearTables();
     generateReports(rows);
-  };
-
-  document.getElementById("requiresShipping").addEventListener("change", load);
-  document
-    .getElementById("fulfillmentStatusPending")
-    .addEventListener("change", load);
-  load();
+  }
 }
 
 function readFile(event) {
@@ -238,7 +234,10 @@ function readFile(event) {
   reader.onload = function () {
     Papa.parse(this.result, {
       header: true,
-      complete: init,
+      complete: (csvContent) => {
+        latestCsvContent = csvContent;
+        load();
+      },
     });
   };
 
@@ -249,3 +248,8 @@ document.getElementById("inputfile").addEventListener("change", readFile);
 document.getElementById("infoButton").addEventListener("click", () => {
   document.getElementById("information").classList.toggle("hidden");
 });
+
+document.getElementById("requiresShipping").addEventListener("change", load);
+document
+  .getElementById("fulfillmentStatusPending")
+  .addEventListener("change", load);
