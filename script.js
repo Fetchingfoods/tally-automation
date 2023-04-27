@@ -3,8 +3,10 @@ const PROTEIN_REGEX =
   /(Chicken|Boneless Rabbit|Rabbit w\/bone|Boneless Rabbit|Rabbit|Buffalo|Wild Boar|Duck w\/bone|Duck|Kangaroo|Lamb|Pork|Turkey|Venison Salmon|Venison|Guinea Hen|Partridge|Pheasant|Quail|Beef|Ostrich|Rex and Rosie|Kanagroo)/i;
 const SIZE_REGEX = /(-?\d+\.?\d*)\s*(?:oz|lb)/;
 
+const getById = (id) => document.getElementById(id);
+
 function insertRow(cells, tableId) {
-  let table = document.getElementById(tableId);
+  let table = getById(tableId);
   let body = table.getElementsByTagName("tbody")[0];
   let newRow = body.insertRow();
 
@@ -66,15 +68,19 @@ function parseCSV(data, filters) {
     return acc;
   }, []);
 
-  document.getElementById("summary").classList.remove("hidden");
-  document.getElementById("totalLines").innerHTML = data.length;
-  document.getElementById("totalLinesFiltered").innerHTML = totalLinesFiltered;
-  document.getElementById("totalUniqueItems").innerHTML = rows.length;
+  const summary = {
+    totalLines: data.length,
+    totalLinesFiltered,
+    totalUniqueItems: rows.length,
+  };
 
-  return rows;
+  return {
+    rows,
+    summary,
+  };
 }
 
-function generateReports(rows) {
+function generateReports({rows, summary}) {
   rows.sort((a, b) => a.sku?.localeCompare(b.sku));
 
   generateJustCat(rows);
@@ -113,6 +119,15 @@ function generateReports(rows) {
 
   // All
   rows.forEach((r) => insertRow([r.sku, r.count], "allTable"));
+
+  generateSummary(summary);
+}
+
+function generateSummary(summary) {
+  getById("summary").classList.remove("hidden");
+  getById("totalLines").innerHTML = summary.totalLines;
+  getById("totalLinesFiltered").innerHTML = summary.totalLinesFiltered;
+  getById("totalUniqueItems").innerHTML = summary.totalUniqueItems;
 }
 
 function generateCustomTable(rows, variants, proteins, tableId, warningId) {
@@ -144,7 +159,7 @@ function generateCustomTable(rows, variants, proteins, tableId, warningId) {
       "Not included in the table above:" +
       rows.map((r) => "<br>" + r.sku + " - " + r.count);
   }
-  document.getElementById(warningId).innerHTML = warning;
+  getById(warningId).innerHTML = warning;
 }
 
 function generateJustCat(rows) {
@@ -216,15 +231,13 @@ let latestCsvContent = null;
 
 function load() {
   if (latestCsvContent) {
-    const filters = {
-      requiresShipping: document.getElementById("requiresShipping").checked,
-      fulfillmentStatusPending: document.getElementById(
-        "fulfillmentStatusPending"
-      ).checked,
-    };
-    const rows = parseCSV(latestCsvContent.data, filters);
     clearTables();
-    generateReports(rows);
+    const filters = {
+      requiresShipping: getById("requiresShipping").checked,
+      fulfillmentStatusPending: getById("fulfillmentStatusPending").checked,
+    };
+    const data = parseCSV(latestCsvContent.data, filters);
+    generateReports(data);
   }
 }
 
@@ -244,12 +257,10 @@ function readFile(event) {
   reader.readAsText(event.target.files[0]);
 }
 
-document.getElementById("inputfile").addEventListener("change", readFile);
-document.getElementById("infoButton").addEventListener("click", () => {
-  document.getElementById("information").classList.toggle("hidden");
+getById("inputfile").addEventListener("change", readFile);
+getById("infoButton").addEventListener("click", () => {
+  getById("information").classList.toggle("hidden");
 });
 
-document.getElementById("requiresShipping").addEventListener("change", load);
-document
-  .getElementById("fulfillmentStatusPending")
-  .addEventListener("change", load);
+getById("requiresShipping").addEventListener("change", load);
+getById("fulfillmentStatusPending").addEventListener("change", load);
