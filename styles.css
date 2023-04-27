@@ -5,6 +5,16 @@ body {
   margin: auto;
 }
 
+section {
+  margin-bottom: 30px;
+  padding: 10px;
+  border: 1px solid #ccc;
+}
+
+#summary {
+  color: #777;
+}
+
 table {
   border-collapse: collapse;
   margin-bottom: 4px;
@@ -27,7 +37,6 @@ th {
   background-color: #f2f2f2;
   font-weight: bold;
 }
-
 
 #bitesTable th {
   background-color: #56c1fe;
@@ -67,4 +76,12 @@ pre {
 
 ul {
   margin-bottom: 8px;
+}
+
+#infoButton {
+  cursor: pointer;
+}
+
+.hidden {
+  display: none;
 }

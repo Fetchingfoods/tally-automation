@@ -1,5 +1,12 @@
-function insertRow(cells, bodyId) {
-  let newRow = document.getElementById(bodyId).insertRow();
+const TYPE_REGEX = /^(JC|OD|PC|Bites)/;
+const PROTEIN_REGEX =
+  /(Chicken|Boneless Rabbit|Rabbit w\/bone|Boneless Rabbit|Rabbit|Buffalo|Wild Boar|Duck w\/bone|Duck|Kangaroo|Lamb|Pork|Turkey|Venison Salmon|Venison|Guinea Hen|Partridge|Pheasant|Quail|Beef|Ostrich|Rex and Rosie|Kanagroo)/i;
+const SIZE_REGEX = /(-?\d+\.?\d*)\s*(?:oz|lb)/;
+
+function insertRow(cells, tableId) {
+  let table = document.getElementById(tableId);
+  let body = table.getElementsByTagName("tbody")[0];
+  let newRow = body.insertRow();
 
   for (let i = 0; i < cells.length; i++) {
     let newCell = newRow.insertCell();
@@ -15,7 +22,8 @@ function clearTables() {
   }
 }
 
-function parseCSV(data) {
+function parseCSV(data, filters) {
+  let totalLinesFiltered = 0;
   const rows = data.reduce((acc, item) => {
     const name = item["Lineitem name"];
     const sku = item["Lineitem sku"];
@@ -24,17 +32,15 @@ function parseCSV(data) {
     const requiresShipping = item["Lineitem requires shipping"];
 
     // Filter lines
-    if (status !== "pending") return acc;
-    if (requiresShipping == "false") return acc;
+    if (filters.fulfillmentStatusPending && status !== "pending") return acc;
+    if (filters.requiresShipping && requiresShipping === "false") return acc;
+    if (sku === undefined) return acc;
 
-    const typeRegex = /^(JC|OD|PC|Bites)/;
-    const proteinRegex =
-      /(Chicken|Boneless Rabbit|Rabbit w\/bone|Boneless Rabbit|Rabbit|Buffalo|Wild Boar|Duck w\/bone|Duck|Kangaroo|Lamb|Pork|Turkey|Venison Salmon|Venison|Guinea Hen|Partridge|Pheasant|Quail|Beef|Ostrich|Rex and Rosie|Kanagroo)/i;
-    const sizeRegex = /(-?\d+\.?\d*)\s*(?:oz|lb)/;
+    totalLinesFiltered++;
 
-    const typeMatch = sku.match(typeRegex);
-    const proteinMatch = sku.match(proteinRegex);
-    const sizeMatch = name.match(sizeRegex);
+    const typeMatch = sku.match(TYPE_REGEX);
+    const proteinMatch = sku.match(PROTEIN_REGEX);
+    const sizeMatch = name.match(SIZE_REGEX);
 
     const type = typeMatch ? typeMatch[0] : "";
     const size = sizeMatch ? sizeMatch[0] : "";
@@ -60,6 +66,11 @@ function parseCSV(data) {
     return acc;
   }, []);
 
+  document.getElementById("summary").classList.remove("hidden");
+  document.getElementById("totalLines").innerHTML = data.length;
+  document.getElementById("totalLinesFiltered").innerHTML = totalLinesFiltered;
+  document.getElementById("totalUniqueItems").innerHTML = rows.length;
+
   return rows;
 }
 
@@ -72,12 +83,12 @@ function generateReports(rows) {
   // Premium Cat
   rows
     .filter((r) => r.type === "PC")
-    .forEach((r) => insertRow([r.sku, r.count], "premiumCatBody"));
+    .forEach((r) => insertRow([r.sku, r.count], "premiumCatTable"));
 
   // Only Bites
   rows
     .filter((r) => r.type === "Bites")
-    .forEach((r) => insertRow([r.sku, r.count], "bitesBody"));
+    .forEach((r) => insertRow([r.sku, r.count], "bitesTable"));
 
   // All rows
   rows.forEach((r) =>
@@ -91,22 +102,23 @@ function generateReports(rows) {
         // r.name,
         r.count,
       ],
-      "productVariantsBody"
+      "productVariantsTable"
     )
   );
 
   // Exceptions
   rows
     .filter((r) => !r.type)
-    .forEach((r) => insertRow([r.sku, r.name, r.count], "exceptionsBody"));
+    .forEach((r) => insertRow([r.sku, r.name, r.count], "exceptionsTable"));
 
   // All
-  rows.forEach((r) => insertRow([r.sku, r.count], "allBody"));
+  rows.forEach((r) => insertRow([r.sku, r.count], "allTable"));
 }
 
-function generateCustomTable(rows, variants, proteins, bodyId, warningId) {
+function generateCustomTable(rows, variants, proteins, tableId, warningId) {
+  const tableData = [];
   proteins.forEach((protein) => {
-    const tableRow = [protein];
+    const tableRow = [];
     variants.forEach((variant) => {
       let product;
       const index = rows.findIndex(
@@ -121,15 +133,18 @@ function generateCustomTable(rows, variants, proteins, bodyId, warningId) {
       }
       tableRow.push(product ? product.count : "");
     });
-    insertRow(tableRow, bodyId);
+    tableData.push(tableRow);
+    insertRow([protein, ...tableRow], tableId);
   });
-  let warning = '';
+
+  let warning = "";
   if (rows.length) {
-    console.warn("Not included in " + bodyId + ":", rows);
-    warning = "Not included in the table above:" +
-    rows.map((r) => "<br>" + r.sku + " - " + r.count);
+    console.warn("Not included in " + tableId + ":", rows);
+    warning =
+      "Not included in the table above:" +
+      rows.map((r) => "<br>" + r.sku + " - " + r.count);
   }
-  document.getElementById(warningId).innerHTML = warning
+  document.getElementById(warningId).innerHTML = warning;
 }
 
 function generateJustCat(rows) {
@@ -159,7 +174,7 @@ function generateJustCat(rows) {
     justCatRows,
     variants,
     proteins,
-    "justCatBody",
+    "justCatTable",
     "justCatWarning"
   );
 }
@@ -182,7 +197,6 @@ function generateOnlyDog(rows) {
     "Pork",
     "Beef",
     "Lamb",
-    "Duck",
     "Duck w/bone",
     "Wild Boar",
     "Buffalo",
@@ -193,15 +207,29 @@ function generateOnlyDog(rows) {
     onlyDogRows,
     variants,
     proteins,
-    "onlyDogBody",
+    "onlyDogTable",
     "onlyDogWarning"
   );
 }
 
 function init(csvContent) {
-  const rows = parseCSV(csvContent.data);
-  clearTables();
-  generateReports(rows);
+  const load = () => {
+    const filters = {
+      requiresShipping: document.getElementById("requiresShipping").checked,
+      fulfillmentStatusPending: document.getElementById(
+        "fulfillmentStatusPending"
+      ).checked,
+    };
+    const rows = parseCSV(csvContent.data, filters);
+    clearTables();
+    generateReports(rows);
+  };
+
+  document.getElementById("requiresShipping").addEventListener("change", load);
+  document
+    .getElementById("fulfillmentStatusPending")
+    .addEventListener("change", load);
+  load();
 }
 
 function readFile(event) {
@@ -218,3 +246,6 @@ function readFile(event) {
 }
 
 document.getElementById("inputfile").addEventListener("change", readFile);
+document.getElementById("infoButton").addEventListener("click", () => {
+  document.getElementById("information").classList.toggle("hidden");
+});
