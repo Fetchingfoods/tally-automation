@@ -2,6 +2,7 @@ const TYPE_REGEX = /^(JC|OD|PC|Bites)/;
 const PROTEIN_REGEX =
   /(Chicken|Boneless Rabbit|Rabbit w\/bone|Boneless Rabbit|Rabbit|Buffalo|Wild Boar|Duck w\/bone|Duck|Kangaroo|Lamb|Pork|Turkey|Venison Salmon|Venison|Guinea Hen|Partridge|Pheasant|Quail|Beef|Ostrich|Rex and Rosie|Kanagroo)/i;
 const SIZE_REGEX = /(-?\d+\.?\d*)\s*(?:oz|lb)/;
+const CUSTOM_REGEX = /(Custom Cat Meals|Custom Dog Meals)(?!.*- Selections$)/;
 
 const getById = (id) => document.getElementById(id);
 
@@ -26,12 +27,16 @@ function clearTables() {
 
 function parseCSV(data, filters) {
   let totalLinesFiltered = 0;
+  const customMeals = [];
   const rows = data.reduce((acc, item) => {
     const name = item["Lineitem name"];
     const sku = item["Lineitem sku"];
     const quantity = item["Lineitem quantity"];
     const status = item["Lineitem fulfillment status"];
     const requiresShipping = item["Lineitem requires shipping"];
+    const email = item["Email"];
+    const orderNumber = item["Name"];
+    const shippingName = item["Shipping Name"];
 
     // Filter lines
     if (filters.fulfillmentStatusPending && status !== "pending") return acc;
@@ -43,6 +48,7 @@ function parseCSV(data, filters) {
     const typeMatch = sku.match(TYPE_REGEX);
     const proteinMatch = sku.match(PROTEIN_REGEX);
     const sizeMatch = name.match(SIZE_REGEX);
+    const customMatch = name.match(CUSTOM_REGEX);
 
     const type = typeMatch ? typeMatch[0] : "";
     const size = sizeMatch ? sizeMatch[0] : "";
@@ -52,7 +58,16 @@ function parseCSV(data, filters) {
       (i) => (i.sku && i.sku === sku) || i.name === name
     );
 
-    if (existingItemIndex >= 0) {
+    if (customMatch) {
+      customMeals.push({
+        orderNumber,
+        email,
+        shippingName,
+        name,
+        sku,
+        quantity,
+      });
+    } else if (existingItemIndex >= 0) {
       acc[existingItemIndex].count += parseInt(quantity);
     } else {
       acc.push({
@@ -76,12 +91,14 @@ function parseCSV(data, filters) {
 
   return {
     rows,
+    customMeals,
     summary,
   };
 }
 
-function generateReports({ rows, summary }) {
-  rows.sort((a, b) => a.sku?.localeCompare(b.sku));
+function generateReports({ rows, customMeals, summary }) {
+  rows.sort((a, b) => a.name?.localeCompare(b.name));
+  customMeals.sort((a, b) => a.orderNumber?.localeCompare(b.orderNumber));
 
   generateJustCat(rows);
   generateOnlyDog(rows);
@@ -96,6 +113,19 @@ function generateReports({ rows, summary }) {
     .filter((r) => r.type === "Bites")
     .forEach((r) => insertRow([r.sku, r.count], "bitesTable"));
 
+  // Custom Meals
+  customMeals.forEach((r) =>
+    insertRow(
+      [r.orderNumber, r.sku, r.email, r.shippingName, r.quantity],
+      "customMealsTable"
+    )
+  );
+
+  // Exceptions
+  rows
+    .filter((r) => !r.type)
+    .forEach((r) => insertRow([r.sku, r.name, r.count], "exceptionsTable"));
+
   // All rows
   rows.forEach((r) =>
     insertRow(
@@ -105,17 +135,12 @@ function generateReports({ rows, summary }) {
         r.protein,
         r.size,
         r.isCooked ? "Cooked" : "Raw",
-        // r.name,
+        r.name,
         r.count,
       ],
       "productVariantsTable"
     )
   );
-
-  // Exceptions
-  rows
-    .filter((r) => !r.type)
-    .forEach((r) => insertRow([r.sku, r.name, r.count], "exceptionsTable"));
 
   // All
   rows.forEach((r) => insertRow([r.sku, r.count], "allTable"));

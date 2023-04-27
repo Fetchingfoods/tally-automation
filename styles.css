@@ -1,7 +1,7 @@
 body {
   font-family: Arial, sans-serif;
   padding: 30px;
-  max-width: 1000px;
+  max-width: 1300px;
   margin: auto;
 }
 
@@ -9,6 +9,7 @@ section {
   margin-bottom: 30px;
   padding: 10px;
   border: 1px solid #ccc;
+  max-width: 700px;
 }
 
 #summary {

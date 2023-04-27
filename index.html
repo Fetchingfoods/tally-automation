@@ -22,6 +22,9 @@
             <li><pre>Lineitem sku</pre></li>
             <li><pre>Lineitem quantity</pre></li>
             <li><pre>Lineitem fulfillment status</pre></li>
+            <li><pre>Email</pre></li>
+            <li><pre>Name (order number)</pre></li>
+            <li><pre>Shipping Name</pre></li>
           </ul>
         </li>
       </ul>
@@ -118,8 +121,28 @@
       <tbody class="table-body"></tbody>
     </table>
 
+    <h3>Custom Meals</h3>
+    <small>
+      filter: contains Custom Cat Meals or Custom Dog Meals and doesn't end with
+      "- Selections"
+    </small>
+    <table id="customMealsTable" border="1">
+      <thead>
+        <tr>
+          <th>Order Number</th>
+          <th>SKU</th>
+          <th>Email</th>
+          <th>Shipping Name</th>
+          <th>Count</th>
+        </tr>
+      </thead>
+      <tbody class="table-body"></tbody>
+    </table>
+
     <h3>Exceptions SKUs</h3>
-    <small>filter: sku does not start with JC|OD|PC|Bites</small>
+    <small>
+      filter: sku does not start with JC|OD|PC|Bites and is not Custom Meal
+    </small>
     <table id="exceptionsTable" border="1">
       <thead>
         <tr>
@@ -153,7 +176,7 @@
           <th>Protein</th>
           <th>Size</th>
           <th>Is Cooked</th>
-          <!-- <th>Name</th> -->
+          <th>Name</th>
           <th>Count</th>
         </tr>
       </thead>
