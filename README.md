@@ -10,7 +10,6 @@ This project is a simple web application to parse and display product informatio
 ## Usage
 
 - Open `index.html` in a web browser.
-   - The files can be downloaded and opened locally or directly from GitHub Pages statis hosting
+  - The files can be downloaded and opened locally or directly from GitHub Pages static hosting
 - Use the file input to select a CSV file exported from Shopify.
 - The app will parse the CSV file and display the generated tables for each category.
-
