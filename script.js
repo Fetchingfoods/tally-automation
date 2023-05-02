@@ -1,8 +1,8 @@
 const TYPE_REGEX = /^(JC|OD|PC|Bites)/;
 const PROTEIN_REGEX =
   /(Chicken|Boneless Rabbit|Rabbit w\/bone|Boneless Rabbit|Rabbit|Buffalo|Wild Boar|Duck w\/bone|Duck|Kangaroo|Lamb|Pork|Turkey|Venison Salmon|Venison|Guinea Hen|Partridge|Pheasant|Quail|Beef|Ostrich|Rex and Rosie|Kanagroo)/i;
-const SIZE_REGEX = /(-?\d+\.?\d*)\s*(?:oz|lb)/;
-const CUSTOM_REGEX = /(Custom Cat Meals|Custom Dog Meals)(?!.*- Selections$)/;
+const SIZE_REGEX = /(\d+\.?\d*)\s*(?:oz|lb)/;
+const CUSTOM_REGEX = /(Custom Cat Meal|Custom Dog Meal)(?!.*- Selections$)/;
 
 const getById = (id) => document.getElementById(id);
 
@@ -47,8 +47,8 @@ function parseCSV(data, filters) {
 
     const typeMatch = sku.match(TYPE_REGEX);
     const proteinMatch = sku.match(PROTEIN_REGEX);
-    const sizeMatch = name.match(SIZE_REGEX);
-    const customMatch = name.match(CUSTOM_REGEX);
+    const sizeMatch = sku.match(SIZE_REGEX);
+    const customMatch = sku.match(CUSTOM_REGEX);
 
     const type = typeMatch ? typeMatch[0] : "";
     const size = sizeMatch ? sizeMatch[0] : "";
@@ -191,16 +191,20 @@ function generateCustomTable(rows, variants, proteins, tableId, warningId) {
         tableRow.push("");
       }
     });
-    insertRow([item.sku, ...tableRow], tableId);
+    if (foundVariant) {
+      insertRow([item.sku, ...tableRow], tableId);
+    }
     return !foundVariant;
   });
 
   // Show items that didn't match the variant columns
+  let message = "";
   if (notIncludedItems.length) {
-    getById(warningId).innerHTML =
+    message =
       "Not included in the table above:" +
       notIncludedItems.map((r) => "<br>" + r.sku + " - " + r.count);
   }
+  getById(warningId).innerHTML = message;
 }
 
 function generateJustCat(rows) {
