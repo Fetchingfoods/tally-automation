@@ -126,7 +126,7 @@ function generateReports({ rows, customMeals, summary }) {
     .filter((r) => !r.type)
     .forEach((r) => insertRow([r.sku, r.name, r.count], "exceptionsTable"));
 
-  // All rows
+  // All rows with properties
   rows.forEach((r) =>
     insertRow(
       [
@@ -142,7 +142,7 @@ function generateReports({ rows, customMeals, summary }) {
     )
   );
 
-  // All
+  // All rows
   rows.forEach((r) => insertRow([r.sku, r.count], "allTable"));
 
   generateSummary(summary);
